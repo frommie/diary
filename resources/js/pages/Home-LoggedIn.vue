@@ -1,13 +1,15 @@
 <template>
   <div class="columns is-variable is-8">
     <div class="column is-3">
+      {{ month_stats }}
       <b-datepicker
         inline
         v-model="date"
         :first-day-of-week="1"
         :events="events"
         v-on:input="changedate"
-        v-on:change-month="get_events">
+        v-on:change-month="get_month_events"
+        v-on:change-year="get_year_events">
       </b-datepicker>
     </div>
     <div class="column is-9">
@@ -146,8 +148,11 @@ export default {
       edit: false,
       headline: '',
       events: [],
+      month_stats: '',
       mood: 0,
-      mood_color: 'is-primary'
+      mood_color: 'is-primary',
+      year: new Date().getFullYear(),
+      month: new Date().getMonth()+1,
     }
   },
   methods: {
@@ -169,10 +174,10 @@ export default {
           console.log(err)
         })
     },
-    changedate(event) {
-      // get entry for this.date
-      //this.date_formatted = this.date.toISOString().split('T')[0]
-      // TODO
+    changedate(value) {
+      if (value) {
+        this.date = value
+      }
       this.get_entry()
     },
     get_entry(datestring) {
@@ -187,19 +192,25 @@ export default {
           this.set_content(data)
         })
     },
-    get_events(month) {
-      if (!month) {
-        month = this.date.getMonth()
-      }
-      month++
+    get_month_events(month) {
+      this.month = month+1
+      this.get_events()
+    },
+    get_year_events(year) {
+      this.year = year
+      this.get_events()
+    },
+    get_events() {
       return axios
-        .get('/get_events/'+month)
+        .get('/get_events/'+this.year+'/'+this.month)
         .then(({ data }) => {
           this.set_events(data)
         })
     },
     set_events(data) {
       this.events = []
+      var days_of_month = new Date(this.year, this.month, 0).getDate();
+      this.month_stats = data.length+' / '+days_of_month
       for (let entry of data) {
         let mood = 'is-primary'
         switch(entry.mood) {

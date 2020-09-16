@@ -96,10 +96,10 @@ Route::post('/entry', function (Request $request) {
     return response($response, 200);
 })->middleware('auth:sanctum');
 
-Route::get('/get_events/{month}', function ($month, Request $request) {
+Route::get('/get_events/{year}/{month}', function ($year, $month, Request $request) {
   $user_id = $request->user()->id;
   $calendar_id = Calendar::where('user_id', $user_id)->first()->id;
-  $entries = Entry::where('calendar_id', $calendar_id)->whereMonth('date', '=', $month)->get();
+  $entries = Entry::where('calendar_id', $calendar_id)->whereYear('date', '=', $year)->whereMonth('date', '=', $month)->get();
   $response = $entries;
 
   return response($response, 200);

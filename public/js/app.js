@@ -2295,6 +2295,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -2312,8 +2314,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       edit: false,
       headline: '',
       events: [],
+      month_stats: '',
       mood: 0,
-      mood_color: 'is-primary'
+      mood_color: 'is-primary',
+      year: new Date().getFullYear(),
+      month: new Date().getMonth() + 1
     };
   },
   methods: {
@@ -2333,10 +2338,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         console.log(err);
       });
     },
-    changedate: function changedate(event) {
-      // get entry for this.date
-      //this.date_formatted = this.date.toISOString().split('T')[0]
-      // TODO
+    changedate: function changedate(value) {
+      if (value) {
+        this.date = value;
+      }
+
       this.get_entry();
     },
     get_entry: function get_entry(datestring) {
@@ -2354,15 +2360,18 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         _this2.set_content(data);
       });
     },
-    get_events: function get_events(month) {
+    get_month_events: function get_month_events(month) {
+      this.month = month + 1;
+      this.get_events();
+    },
+    get_year_events: function get_year_events(year) {
+      this.year = year;
+      this.get_events();
+    },
+    get_events: function get_events() {
       var _this3 = this;
 
-      if (!month) {
-        month = this.date.getMonth();
-      }
-
-      month++;
-      return axios.get('/get_events/' + month).then(function (_ref2) {
+      return axios.get('/get_events/' + this.year + '/' + this.month).then(function (_ref2) {
         var data = _ref2.data;
 
         _this3.set_events(data);
@@ -2370,6 +2379,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     set_events: function set_events(data) {
       this.events = [];
+      var days_of_month = new Date(this.year, this.month, 0).getDate();
+      this.month_stats = data.length + ' / ' + days_of_month;
 
       var _iterator = _createForOfIteratorHelper(data),
           _step;
@@ -49563,9 +49574,14 @@ var render = function() {
       "div",
       { staticClass: "column is-3" },
       [
+        _vm._v("\n    " + _vm._s(_vm.month_stats) + "\n    "),
         _c("b-datepicker", {
           attrs: { inline: "", "first-day-of-week": 1, events: _vm.events },
-          on: { input: _vm.changedate, "change-month": _vm.get_events },
+          on: {
+            input: _vm.changedate,
+            "change-month": _vm.get_month_events,
+            "change-year": _vm.get_year_events
+          },
           model: {
             value: _vm.date,
             callback: function($$v) {
